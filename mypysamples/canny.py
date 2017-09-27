@@ -12,6 +12,7 @@ cv2.imshow("Image", image)
 
 #gradient values below 30 are considered non-edges
 #gradient values above 150 are considered edges.
-canny = cv2.Canny(image, 30, 150)
+#canny = cv2.Canny(image, 30, 150)
+canny = cv2.Canny(image, 10, 200)
 cv2.imshow("Canny", canny)
 cv2.waitKey(0)

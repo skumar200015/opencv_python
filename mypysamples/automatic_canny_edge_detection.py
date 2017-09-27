@@ -1,17 +1,37 @@
 import numpy as np
 import argparse
+import glob #to grab paths for images from disk
 import cv2
+
+def auto_canny(image, sigma=0.33):
+    # compute the median of the single channel pixel intensities
+    v = np.median(image)
+    # apply automatic Canny edge detection using the computed median
+    lower = int(max(0, (1.0 - sigma) * v))
+    upper = int(min(255, (1.0 + sigma) * v))
+    edged = cv2.Canny(image, lower, upper)
+
+    #return the edged image
+    return edged
+
+# construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser()
-ap.add_argument("-i", "--image", required = True, help = "Path to the image")
+ap.add_argument("-i", "--images", required=True,
+                help="path to input dataset of images")
 args = vars(ap.parse_args())
 
-image = cv2.imread(args["image"])
-image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-image = cv2.GaussianBlur(image, (5,5), 0)
-cv2.imshow("Image", image)
+#loop over the images
+for imagePath in glob.glob(args["images"] + "/*.jpg"):
+    image = cv2.imread(imagePath)
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    blurred = cv2.GaussianBlur(image, (5, 5), 0)
 
-#gradient values below 30 are considered non-edges
-#gradient values above 150 are considered edges.
-canny = cv2.Canny(image, 30, 150)
-cv2.imshow("Canny", canny)
-cv2.waitKey(0)
+    # apply Canny edge detection using a wide threshold, tight
+    # threshold, and automatically determined threshold
+    wide = cv2.Canny(blurred, 10, 200)
+    tight = cv2.Canny(blurred, 225, 250)
+    auto = auto_canny(blurred)
+
+    cv2.imshow("Original Image", image)
+    cv2.imshow("Edges", np.hstack([wide, tight, auto]))
+    cv2.waitKey(0)
